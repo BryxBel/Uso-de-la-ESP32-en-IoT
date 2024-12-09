@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos de Sensores</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <h1>Datos de Sensores</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nodo</th>
+                <th>IPv6 Global</th>
+                <th>Temperatura (°C)</th>
+                <th>Humedad (%)</th>
+                <th>Última Actualización</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Gráficas por Nodo</h2>
+
+    {% for nodo, data in historial.items() %}
+    <div class="node-section">
+        <h3>Gráfica del Nodo {{ nodo }}</h3>
+        <div id="chart_div_{{ loop.index }}"></div>
+        <script>
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(function() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('datetime', 'Tiempo');
+                data.addColumn('number', 'Temperatura (°C)');
+                data.addColumn('number', 'Humedad (%)');
+
+                data.addRows([
+                    {% for hist in data %}
+                    [new Date("{{ hist[2] }}"), {{ hist[0] }}, {{ hist[1] }}],
+                    {% endfor %}
+                ]);
+
+                var options = {
+                    title: 'Nodo {{ nodo }}',
+                    curveType: 'function',
+                    legend: { position: 'bottom' },
+                    hAxis: { title: 'Tiempo', format: 'HH:mm:ss' },
+                    vAxis: { title: 'Valores' },
+                    lineWidth: 2,
+                    pointSize: 5,
+                    colors: ['#FF5733', '#33C3FF']
+                };
+
+                var chart = new google.visualization.LineChart(document.getElementById('chart_div_{{ loop.index }}'));
+                chart.draw(data, options);
+            });
+        </script>
+    </div>
+    {% endfor %}
+</body>
+</html>
